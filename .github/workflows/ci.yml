@@ -7,13 +7,8 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,14 +19,16 @@ jobs:
           dotnet-version: '8.0.x'
           cache: true
           
-      - name: Show .NET version
-        run: dotnet --version
-
       - name: Restore
         run: dotnet restore
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
+        
+  test:
+    runs-on: ubuntu-latest
+    needs: build
 
-      - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
+    steps:
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal
