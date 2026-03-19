@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x', '9.0.x' ]
 
     steps:
       - name: Checkout code
@@ -16,9 +20,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ matrix.dotnet-version }}
           
-      - name: Show active SDK
+      - name: Show .NET version
         run: dotnet --version
 
       - name: Restore
@@ -28,4 +32,4 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal --filter "NonExistingTest"
+        run: dotnet test --no-build --configuration Release --verbosity normal
