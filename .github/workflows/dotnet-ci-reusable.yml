@@ -2,6 +2,14 @@ name: Reusable .NET CI
 
 on:
   workflow_call:
+    inputs:
+      dotnet-version:
+        required: true
+        type: string
+      run-tests:
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build-test:
@@ -14,7 +22,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Restore
         run: dotnet restore

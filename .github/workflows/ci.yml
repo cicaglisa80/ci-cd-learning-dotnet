@@ -12,3 +12,6 @@ concurrency:
 jobs:
   ci-build:
     uses: ./.github/workflows/dotnet-ci-reusable.yml
+    with:
+      dotnet-version: '8.0.x'
+      run-tests: true
