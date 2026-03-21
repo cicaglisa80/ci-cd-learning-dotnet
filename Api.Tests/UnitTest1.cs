@@ -6,5 +6,7 @@ public class UnitTest1
     public void Test1()
     {
         Assert.Equal(1, 1);
+        Assert.Equal(2, 2);
+        Assert.Equal(3, 3);
     }
 }
