@@ -14,4 +14,5 @@ jobs:
     uses: ./.github/workflows/dotnet-ci-reusable.yml
     with:
       dotnet-version: '8.0.x'
+      solution-path: '_learning.sln'
       run-tests: true
