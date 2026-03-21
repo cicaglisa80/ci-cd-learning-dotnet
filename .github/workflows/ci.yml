@@ -1,9 +1,9 @@
 name: CI
 
 on:
+  pull_request:
   push:
     branches: [ "main" ]
-  pull_request:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -11,40 +11,4 @@ concurrency:
 
 jobs:
   ci-build:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code 
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-          
-          
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-        
-      - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal  
-
-  publish:
-    runs-on: ubuntu-latest
-    needs: ci-build
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-      
-      - name: Publish app
-        run: dotnet publish Api/Api.csproj --configuration Release --output ./publish
+    uses: ./.github/workflows/dotnet-ci-reusable.yml
