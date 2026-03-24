@@ -9,7 +9,7 @@ env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: my-api
   ECS_CLUSTER: willing-penguin-1lhvjb
-  ECS_SERVICE: my-api-task-service-hj95skon
+  ECS_SERVICE: my-api-task-service-le5eg8zx
   ECS_TASK_DEFINITION: my-api-task
   CONTAINER_NAME: my-api
 
@@ -28,7 +28,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::086501270575:role/github-actions-ecr
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
@@ -48,21 +48,38 @@ jobs:
             --task-definition $ECS_TASK_DEFINITION \
             --query taskDefinition > task-definition.json
 
-      - name: Update task definition with new image
+      - name: Prepare new task definition
         run: |
-          jq --arg IMAGE "$IMAGE_URI" \
-            '.containerDefinitions[0].image = $IMAGE' \
-            task-definition.json > new-task-definition.json
+          jq --arg IMAGE "$IMAGE_URI" '
+            del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy
+            )
+            | .containerDefinitions[0].image = $IMAGE
+          ' task-definition.json > new-task-definition.json
 
       - name: Register new task definition
         run: |
-          aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json
+          TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)
+          echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
       - name: Update ECS service
         run: |
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
-            --task-definition $ECS_TASK_DEFINITION \
-            --force-new-deployment
+            --task-definition $TASK_DEF_ARN
+
+      - name: Wait for ECS service stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE
