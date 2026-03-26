@@ -23,6 +23,11 @@ var summaries = new[]
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
+app.MapGet("/fail", () =>
+{
+    throw new Exception("test 500 error");
+});
+
 app.MapGet("/weatherforecast", () =>
 {
     var forecast =  Enumerable.Range(1, 5).Select(index =>
